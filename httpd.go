@@ -26,6 +26,7 @@ func exec_tesseract(time string) (string, error) {
 	}
 
 	buffer, _ := ioutil.ReadFile(time + ".txt")
+	os.Remove(time + ".jpg")
 	os.Remove(time + ".txt")
 
 	return strings.TrimSpace(string(buffer)), nil
