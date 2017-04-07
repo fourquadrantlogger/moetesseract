@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const charWhitelist = ""
+const charWhitelist = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func savejpg(req *http.Request) {
 	time := req.FormValue("time")
