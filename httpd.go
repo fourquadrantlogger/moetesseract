@@ -40,9 +40,10 @@ func main() {
 		if err != nil {
 			w.WriteHeader(400)
 			w.Write([]byte(err.Error()))
-			return
+		} else {
+			w.Write([]byte(result))
 		}
-		w.Write([]byte(result))
+
 	})
 	http.ListenAndServe(":8092", nil)
 }
