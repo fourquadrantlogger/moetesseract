@@ -17,7 +17,7 @@ func savejpg(req *http.Request) {
 	ioutil.WriteFile(time+".jpg", bs, os.ModePerm)
 }
 func exec_tesseract(time string) (string, error) {
-	cmd := exec.Command("tesseract", time+".jpg", time+".txt", "-l", "eng", "-psm", "6", "-c", "tessedit_char_whitelist="+charWhitelist)
+	cmd := exec.Command("tesseract", time+".jpg", time+".temp", "-l", "eng", "-psm", "6", "-c", "tessedit_char_whitelist="+charWhitelist)
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -25,9 +25,9 @@ func exec_tesseract(time string) (string, error) {
 		return "", e
 	}
 
-	buffer, _ := ioutil.ReadFile(time + ".txt")
+	buffer, _ := ioutil.ReadFile(time + ".temp.txt")
 	os.Remove(time + ".jpg")
-	os.Remove(time + ".txt")
+	os.Remove(time + ".temp.txt")
 
 	return strings.TrimSpace(string(buffer)), nil
 
