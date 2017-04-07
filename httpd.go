@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
+	"image/color"
 	"image/jpeg"
 	"io/ioutil"
 	"net/http"
@@ -13,32 +15,42 @@ import (
 
 const charWhitelist = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func savejpg(req *http.Request) {
-	time := req.FormValue("time")
-	bs, _ := ioutil.ReadAll(req.Body)
-	ioutil.WriteFile(time+".jpg", bs, os.ModePerm)
+func fiximg(req *http.Request, time string) error {
 
-}
-func fiximg(time string) error {
-	fi, err := os.Open(time + ".jpg")
-	if err != nil {
-		return err
-	}
-	defer fi.Close()
-	img, err := jpeg.Decode(fi)
+	img, err := jpeg.Decode(req.Body)
 	if err != nil {
 		return err
 	}
 
 	//去掉黑边
-	var newimg *image.RGBA = &(image.RGBA{Rect: img.Bounds()})
-	for y := 1; y < img.Bounds().Dy(); y++ {
-		for x := 1; x < img.Bounds().Dx(); x++ {
-			newimg.Set(x, y, img.At(x, y))
+	buf := make([]uint8, 4*img.Bounds().Dx()*img.Bounds().Dy())
+	var newimg *image.RGBA = &image.RGBA{buf, 4 * img.Bounds().Dx(), img.Bounds()}
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			avarge := int(float64(r)*0.3 + float64(g)*0.51 + float64(b)*0.19)
+
+			if avarge <= 255*50 {
+				newimg.Set(x, y, img.At(x, y))
+			} else {
+				newimg.Set(x, y, color.White)
+			}
+
 		}
 	}
+	for x := 0; x < img.Bounds().Dx(); x++ {
+		newimg.Set(x, 0, color.White)
+	}
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		newimg.Set(0, y, color.White)
+	}
 
-	jpeg.Encode(fi, newimg, &jpeg.Options{Quality: 100})
+	dst, err := os.Create(time + ".jpg")
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	jpeg.Encode(dst, newimg, &jpeg.Options{Quality: 100})
 	return nil
 }
 func exec_tesseract(time string) (string, error) {
@@ -51,9 +63,8 @@ func exec_tesseract(time string) (string, error) {
 	}
 
 	buffer, _ := ioutil.ReadFile(time + ".temp.txt")
-	os.Remove(time + ".jpg")
 	os.Remove(time + ".temp.txt")
-
+	os.Remove(time + ".jpg")
 	return strings.TrimSpace(string(buffer)), nil
 
 }
@@ -61,8 +72,7 @@ func exec_tesseract(time string) (string, error) {
 func main() {
 	http.HandleFunc("/upload", func(w http.ResponseWriter, req *http.Request) {
 		time := req.FormValue("time")
-		savejpg(req)
-		fiximg(time)
+		fiximg(req, time)
 		result, err := exec_tesseract(time)
 		if err != nil {
 			w.WriteHeader(400)
