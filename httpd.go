@@ -31,7 +31,7 @@ func fiximg(time string) error {
 	}
 
 	//去掉黑边
-	newimg := image.RGBA{img.Bounds()}
+	var newimg *image.RGBA = &(image.RGBA{Rect: img.Bounds()})
 	for y := 1; y < img.Bounds().Dy(); y++ {
 		for x := 1; x < img.Bounds().Dx(); x++ {
 			newimg.Set(x, y, img.At(x, y))
