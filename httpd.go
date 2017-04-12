@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -81,5 +82,6 @@ func main() {
 		}
 
 	})
+	fmt.Println("moetesseract start")
 	http.ListenAndServe(":8092", nil)
 }
