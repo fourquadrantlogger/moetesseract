@@ -45,7 +45,7 @@ func fiximg(req *http.Request, time string) error {
 		newimg.Set(0, y, color.White)
 	}
 
-	dst, err := os.Create(time + ".jpg")
+	dst, err := os.Create("tmp/" + time + ".jpg")
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func fiximg(req *http.Request, time string) error {
 	return nil
 }
 func exec_tesseract(time string) (string, error) {
-	cmd := exec.Command("tesseract", time+".jpg", time+".temp", "-l", "eng", "-psm", "6", "-c", "tessedit_char_whitelist="+charWhitelist)
+	cmd := exec.Command("tesseract", "tmp/"+time+".jpg", "tmp/"+time+".temp", "-l", "eng", "-psm", "6", "-c", "tessedit_char_whitelist="+charWhitelist)
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -62,9 +62,9 @@ func exec_tesseract(time string) (string, error) {
 		return "", e
 	}
 
-	buffer, _ := ioutil.ReadFile(time + ".temp.txt")
-	os.Remove(time + ".temp.txt")
-	os.Remove(time + ".jpg")
+	buffer, _ := ioutil.ReadFile("tmp/" + time + ".temp.txt")
+	os.Remove("tmp/" + time + ".temp.txt")
+	os.Remove("tmp/" + time + ".jpg")
 	return strings.TrimSpace(string(buffer)), nil
 
 }
