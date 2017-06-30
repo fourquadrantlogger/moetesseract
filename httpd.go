@@ -83,5 +83,8 @@ func main() {
 
 	})
 	fmt.Println("moetesseract start")
-	http.ListenAndServe(":8092", nil)
+	err := http.ListenAndServe(":8092", nil)
+	if err != nil {
+		panic(err)
+	}
 }
